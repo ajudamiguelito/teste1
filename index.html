@@ -8,29 +8,29 @@
   <style>
     body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
     
-    /* Container para centralizar o botão de título */
     .header-container {
       width: 100%;
       max-width: 500px;
-      margin: 20px auto 40px auto;
+      margin: 10px auto 30px auto;
       text-align: center;
+      position: sticky; /* Faz o título ficar fixo no topo enquanto rola se quiser */
+      top: 10px;
+      z-index: 100;
     }
 
-    /* O Título dentro de um botão */
     #titulo-site {
       display: inline-block;
       width: 100%;
-      padding: 20px 10px;
+      padding: 18px 10px;
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
       color: white;
-      text-decoration: none;
       border-radius: 12px;
       font-weight: 800;
-      font-size: 22px;
+      font-size: 20px;
       text-transform: uppercase;
-      letter-spacing: 1px;
       box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
       box-sizing: border-box;
+      transition: all 0.3s ease; /* Efeito suave ao mudar o texto */
     }
 
     .swiper { width: 100%; max-width: 500px; padding-bottom: 50px; }
@@ -67,6 +67,7 @@
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
     const apiURL = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
+    let listaTitulos = []; // Guardará os títulos de cada linha
 
     async function carregarFeed() {
       try {
@@ -79,15 +80,15 @@
           return novoItem;
         });
 
-        // Puxa o título da coluna 'titulo' da planilha
-        const tituloEncontrado = dados.find(item => item.titulo && item.titulo !== "")?.titulo;
-        document.getElementById("titulo-site").innerText = tituloEncontrado || "MEU FEED";
-
         const feed = document.getElementById("meu-feed");
         feed.innerHTML = "";
+        listaTitulos = []; // Reinicia a lista
 
         dados.forEach(item => {
           if (item.ativo && item.ativo.toLowerCase() === "sim" && item.link) {
+            // Adiciona o título desta linha na nossa lista de memória
+            listaTitulos.push(item.titulo || "SEM TÍTULO");
+
             const slide = document.createElement("div");
             slide.className = "swiper-slide";
             const linkLimpo = item.link.split('?')[0];
@@ -103,10 +104,22 @@
           }
         });
 
-        new Swiper('.swiper', {
+        // Inicializa o Swiper
+        const swiper = new Swiper('.swiper', {
           navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
           pagination: { el: '.swiper-pagination', clickable: true },
           spaceBetween: 30,
+          on: {
+            // Toda vez que o slide mudar, executa isso:
+            slideChange: function () {
+              const index = this.activeIndex;
+              document.getElementById("titulo-site").innerText = listaTitulos[index];
+            },
+            // Define o título inicial assim que carregar
+            init: function () {
+              document.getElementById("titulo-site").innerText = listaTitulos[0] || "MEU FEED";
+            }
+          }
         });
 
         if (window.instgrm) { window.instgrm.Embeds.process(); }
