@@ -8,10 +8,29 @@
   <style>
     body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
     
+    /* Container para centralizar o botão de título */
+    .header-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto 40px auto;
+      text-align: center;
+    }
+
+    /* O Título dentro de um botão */
     #titulo-site {
-      text-align: center; color: #333; font-size: 26px;
-      margin: 20px 0 30px 0; font-weight: 800; text-transform: uppercase;
+      display: inline-block;
+      width: 100%;
+      padding: 20px 10px;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 22px;
+      text-transform: uppercase;
       letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(220, 39, 67, 0.3);
+      box-sizing: border-box;
     }
 
     .swiper { width: 100%; max-width: 500px; padding-bottom: 50px; }
@@ -34,7 +53,9 @@
 </head>
 <body>
 
-  <h1 id="titulo-site">Carregando...</h1>
+  <div class="header-container">
+    <div id="titulo-site">CARREGANDO...</div>
+  </div>
 
   <div class="swiper">
     <div class="swiper-wrapper" id="meu-feed"></div>
@@ -58,15 +79,14 @@
           return novoItem;
         });
 
-        // BUSCA O TÍTULO: Ele varre a planilha até achar algo escrito na coluna 'titulo'
+        // Puxa o título da coluna 'titulo' da planilha
         const tituloEncontrado = dados.find(item => item.titulo && item.titulo !== "")?.titulo;
-        document.getElementById("titulo-site").innerText = tituloEncontrado || "Meu Feed";
+        document.getElementById("titulo-site").innerText = tituloEncontrado || "MEU FEED";
 
         const feed = document.getElementById("meu-feed");
         feed.innerHTML = "";
 
         dados.forEach(item => {
-          // Só cria o card se tiver link e estiver ativo
           if (item.ativo && item.ativo.toLowerCase() === "sim" && item.link) {
             const slide = document.createElement("div");
             slide.className = "swiper-slide";
@@ -91,7 +111,7 @@
 
         if (window.instgrm) { window.instgrm.Embeds.process(); }
       } catch (error) {
-        document.getElementById("titulo-site").innerText = "Erro ao carregar";
+        document.getElementById("titulo-site").innerText = "ERRO AO CARREGAR";
       }
     }
     carregarFeed();
