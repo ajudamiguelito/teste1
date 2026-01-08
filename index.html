@@ -6,8 +6,29 @@
   <script async src="//www.instagram.com/embed.js"></script>
   <style>
     body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-    .card-container { width: 100%; max-width: 450px; background: white; border-radius: 12px; padding: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .btn-acao { display: block; margin-top: 15px; padding: 16px; text-align: center; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white !important; text-decoration: none !important; border-radius: 8px; font-weight: bold; font-size: 16px; }
+    .card-container { 
+      width: 100%; 
+      max-width: 400px; 
+      background: white; 
+      border-radius: 12px; 
+      padding: 10px; 
+      margin-bottom: 30px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    }
+    .btn-acao { 
+      display: block; 
+      margin-top: 15px; 
+      padding: 16px; 
+      text-align: center; 
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
+      color: white !important; 
+      text-decoration: none !important; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      font-size: 16px; 
+    }
+    /* Esconde a legenda caso o script do Insta tente forçar */
+    .instagram-media blockquote { display: none !important; }
   </style>
 </head>
 <body>
@@ -23,7 +44,7 @@
         const feed = document.getElementById("meu-feed");
         feed.innerHTML = "";
 
-        // ESTA PARTE RESOLVE O ERRO: Limpa espaços extras nos nomes das colunas
+        // Limpa espaços extras nos nomes das colunas da planilha
         const dados = dadosRaw.map(item => {
           const novoItem = {};
           for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
@@ -31,14 +52,18 @@
         });
 
         dados.forEach(item => {
-          // Agora o código encontra "ativo", "link" e "nome" mesmo com espaços na planilha
           if (item.ativo && item.ativo.toLowerCase() === "sim") {
             const container = document.createElement("div");
             container.className = "card-container";
             const linkLimpo = item.link.split('?')[0];
 
+            // Note que removi o "data-instgrm-captioned" abaixo para tirar a legenda
             container.innerHTML = `
-              <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:99.3%; margin:0; border:0;"></blockquote>
+              <blockquote class="instagram-media" 
+                data-instgrm-permalink="${linkLimpo}" 
+                data-instgrm-version="14" 
+                style="width:99.3%; margin:0; border:0; background:#FFF;">
+              </blockquote>
               <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
             `;
             feed.appendChild(container);
@@ -47,7 +72,7 @@
 
         if (window.instgrm) { window.instgrm.Embeds.process(); }
       } catch (error) {
-        document.getElementById("meu-feed").innerHTML = "Erro ao conectar com a planilha. Verifique a conexão.";
+        document.getElementById("meu-feed").innerHTML = "Erro ao conectar.";
       }
     }
     carregarFeed();
