@@ -5,19 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="//www.instagram.com/embed.js"></script>
   <style>
-    body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    
     .card-container { 
       width: 100%; 
       max-width: 400px; 
       background: white; 
       border-radius: 12px; 
-      padding: 10px; 
+      padding: 12px; 
       margin-bottom: 30px; 
       box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
     }
+
+    /* Estilo do seu comentário personalizado */
+    .meu-comentario {
+      margin: 15px 5px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #dc2743; /* Linha colorida lateral */
+      font-size: 14px;
+      color: #333;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
     .btn-acao { 
       display: block; 
-      margin-top: 15px; 
       padding: 16px; 
       text-align: center; 
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
@@ -26,9 +39,9 @@
       border-radius: 8px; 
       font-weight: bold; 
       font-size: 16px; 
+      transition: transform 0.2s;
     }
-    /* Esconde a legenda caso o script do Insta tente forçar */
-    .instagram-media blockquote { display: none !important; }
+    .btn-acao:hover { transform: scale(1.02); }
   </style>
 </head>
 <body>
@@ -44,7 +57,6 @@
         const feed = document.getElementById("meu-feed");
         feed.innerHTML = "";
 
-        // Limpa espaços extras nos nomes das colunas da planilha
         const dados = dadosRaw.map(item => {
           const novoItem = {};
           for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
@@ -55,15 +67,19 @@
           if (item.ativo && item.ativo.toLowerCase() === "sim") {
             const container = document.createElement("div");
             container.className = "card-container";
+            
             const linkLimpo = item.link.split('?')[0];
+            const textoComentario = item.comentario || ""; // Puxa da nova coluna
 
-            // Note que removi o "data-instgrm-captioned" abaixo para tirar a legenda
             container.innerHTML = `
               <blockquote class="instagram-media" 
                 data-instgrm-permalink="${linkLimpo}" 
                 data-instgrm-version="14" 
                 style="width:99.3%; margin:0; border:0; background:#FFF;">
               </blockquote>
+              
+              ${textoComentario ? `<div class="meu-comentario">"${textoComentario}"</div>` : ''}
+              
               <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
             `;
             feed.appendChild(container);
