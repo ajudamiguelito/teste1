@@ -5,94 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="//www.instagram.com/embed.js"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f0f2f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      margin: 0;
-    }
-    .card-dinamico {
-      background: white;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 540px; /* Largura padrão do Instagram */
-    }
-    .btn-direcionar {
-      display: block;
-      margin-top: 15px;
-      padding: 16px;
-      text-align: center;
-      /* Gradiente oficial do Instagram */
-      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      color: white !important;
-      text-decoration: none !important;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 18px;
-      transition: transform 0.2s;
-    }
-    .btn-direcionar:hover { transform: scale(1.02); }
+    body { font-family: sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    .card-container { width: 100%; max-width: 450px; background: white; border-radius: 12px; padding: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .btn-acao { display: block; margin-top: 15px; padding: 16px; text-align: center; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white !important; text-decoration: none !important; border-radius: 8px; font-weight: bold; font-size: 16px; }
   </style>
 </head>
 <body>
-
-  <div id="lista-feed">Carregando conteúdos...</div>
+  <div id="meu-feed">Carregando conteúdos...</div>
 
   <script>
-    // Link da sua planilha via OpenSheet
     const apiURL = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
 
     async function carregarFeed() {
       try {
         const response = await fetch(apiURL);
-        const dados = await response.json();
-        const feed = document.getElementById("lista-feed");
-        
-        feed.innerHTML = ""; // Limpa o texto de carregamento
+        const dadosRaw = await response.json();
+        const feed = document.getElementById("meu-feed");
+        feed.innerHTML = "";
+
+        // ESTA PARTE RESOLVE O ERRO: Limpa espaços extras nos nomes das colunas
+        const dados = dadosRaw.map(item => {
+          const novoItem = {};
+          for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
+          return novoItem;
+        });
 
         dados.forEach(item => {
-          // Verifica se está ativo na planilha (coluna 'ativo')
+          // Agora o código encontra "ativo", "link" e "nome" mesmo com espaços na planilha
           if (item.ativo && item.ativo.toLowerCase() === "sim") {
-            
-            const card = document.createElement("div");
-            card.className = "card-dinamico";
-
-            // Limpa o link para garantir que o embed funcione
+            const container = document.createElement("div");
+            container.className = "card-container";
             const linkLimpo = item.link.split('?')[0];
 
-            card.innerHTML = `
-              <blockquote class="instagram-media" 
-                data-instgrm-captioned 
-                data-instgrm-permalink="${linkLimpo}" 
-                data-instgrm-version="14" 
-                style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; width:calc(100% - 2px);">
-              </blockquote>
-              
-              <a href="${item.link}" target="_blank" class="btn-direcionar">
-                 ${item.nome || 'Acessar'}
-              </a>
+            container.innerHTML = `
+              <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:99.3%; margin:0; border:0;"></blockquote>
+              <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
             `;
-            
-            feed.appendChild(card);
+            feed.appendChild(container);
           }
         });
 
-        // Força o Instagram a processar os posts carregados dinamicamente
-        if (window.instgrm) {
-          window.instgrm.Embeds.process();
-        }
-
+        if (window.instgrm) { window.instgrm.Embeds.process(); }
       } catch (error) {
-        document.getElementById("lista-feed").innerHTML = "Erro ao carregar dados da planilha.";
+        document.getElementById("meu-feed").innerHTML = "Erro ao conectar com a planilha. Verifique a conexão.";
       }
     }
-
     carregarFeed();
   </script>
 </body>
