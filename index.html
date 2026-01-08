@@ -6,47 +6,44 @@
   <script async src="//www.instagram.com/embed.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
   <style>
-    body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 40px 20px; }
+    body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
     
-    /* Configuração do Carrossel */
+    #titulo-site {
+      text-align: center; color: #333; font-size: 26px;
+      margin: 20px 0 30px 0; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
     .swiper { width: 100%; max-width: 500px; padding-bottom: 50px; }
-    
     .card-container { 
       background: white; border-radius: 12px; padding: 12px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box;
-      height: auto; display: flex; flex-direction: column;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
     }
-
     .meu-comentario {
       margin: 15px 5px; padding: 10px; background-color: #f8f9fa;
-      border-left: 4px solid #dc2743; font-size: 14px; color: #333;
-      line-height: 1.5; font-style: italic;
+      border-left: 4px solid #dc2743; font-size: 14px; color: #333; font-style: italic;
     }
-
     .btn-acao { 
       display: block; padding: 16px; text-align: center; 
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
       color: white !important; text-decoration: none !important; 
-      border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: auto;
+      border-radius: 8px; font-weight: bold; margin-top: auto;
     }
-
-    /* Estilo das Setas */
-    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.7); }
-    .swiper-pagination-bullet-active { background: #cc2366; }
+    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.6); }
   </style>
 </head>
 <body>
 
+  <h1 id="titulo-site">Carregando...</h1>
+
   <div class="swiper">
-    <div class="swiper-wrapper" id="meu-feed">
-      </div>
+    <div class="swiper-wrapper" id="meu-feed"></div>
     <div class="swiper-button-next"></div>
     <div class="swiper-button-prev"></div>
     <div class="swiper-pagination"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
   <script>
     const apiURL = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
 
@@ -54,26 +51,31 @@
       try {
         const response = await fetch(apiURL);
         const dadosRaw = await response.json();
-        const feed = document.getElementById("meu-feed");
-
+        
         const dados = dadosRaw.map(item => {
           const novoItem = {};
           for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
           return novoItem;
         });
 
+        // BUSCA O TÍTULO: Ele varre a planilha até achar algo escrito na coluna 'titulo'
+        const tituloEncontrado = dados.find(item => item.titulo && item.titulo !== "")?.titulo;
+        document.getElementById("titulo-site").innerText = tituloEncontrado || "Meu Feed";
+
+        const feed = document.getElementById("meu-feed");
+        feed.innerHTML = "";
+
         dados.forEach(item => {
-          if (item.ativo && item.ativo.toLowerCase() === "sim") {
+          // Só cria o card se tiver link e estiver ativo
+          if (item.ativo && item.ativo.toLowerCase() === "sim" && item.link) {
             const slide = document.createElement("div");
             slide.className = "swiper-slide";
-            
             const linkLimpo = item.link.split('?')[0];
-            const textoComentario = item.comentario || "";
 
             slide.innerHTML = `
               <div class="card-container">
                 <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:99.3%; margin:0; border:0; background:#FFF;"></blockquote>
-                ${textoComentario ? `<div class="meu-comentario">"${textoComentario}"</div>` : ''}
+                ${item.comentario ? `<div class="meu-comentario">"${item.comentario}"</div>` : ''}
                 <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
               </div>
             `;
@@ -81,17 +83,15 @@
           }
         });
 
-        // Inicia o Carrossel após carregar os dados
         new Swiper('.swiper', {
-          loop: false,
-          pagination: { el: '.swiper-pagination', clickable: true },
           navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+          pagination: { el: '.swiper-pagination', clickable: true },
           spaceBetween: 30,
         });
 
         if (window.instgrm) { window.instgrm.Embeds.process(); }
       } catch (error) {
-        console.error("Erro ao carregar:", error);
+        document.getElementById("titulo-site").innerText = "Erro ao carregar";
       }
     }
     carregarFeed();
