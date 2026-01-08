@@ -5,94 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script async src="//www.instagram.com/embed.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      background-color: #f0f2f5;
-    }
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; padding: 20px; }
     .card-post {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 30px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 450px; /* Largura ideal para Reels */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: white; border-radius: 12px; padding: 10px; margin-bottom: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px;
     }
-    .instagram-media {
-      margin: 0 !important;
-      border-radius: 8px !important;
-    }
-    .btn-direcionamento {
-      display: block;
-      width: 100%;
-      margin-top: 15px;
-      padding: 16px;
-      text-align: center;
+    .btn-direcionar {
+      display: block; margin-top: 15px; padding: 15px; text-align: center;
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      color: white !important;
-      text-decoration: none !important;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 18px;
-      transition: transform 0.2s;
+      color: white !important; text-decoration: none !important;
+      border-radius: 8px; font-weight: bold; font-size: 16px;
     }
-    .btn-direcionamento:hover { transform: scale(1.02); }
   </style>
 </head>
 <body>
-
-  <div id="feed-dinamico">Carregando conteúdos...</div>
+  <div id="feed">Carregando conteúdo...</div>
 
   <script>
-    const urlPlanilha = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
+    const url = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
 
-    async function carregarFeed() {
+    async function carregar() {
       try {
-        const response = await fetch(urlPlanilha);
-        const dados = await response.json();
-        const container = document.getElementById("feed-dinamico");
+        const res = await fetch(url);
+        const dados = await res.json();
+        const container = document.getElementById("feed");
         container.innerHTML = ""; 
 
         dados.forEach(item => {
-          // Só processa se estiver ativo na planilha
           if (item.ativo && item.ativo.toLowerCase() === "sim") {
-            
-            // Criar o Card
             const card = document.createElement("div");
             card.className = "card-post";
+            
+            // Limpa o link para o formato de embed
+            const linkLimpo = item.link.split('?')[0];
 
-            // Criar o Bloco do Instagram (Blockquote exigido pelo Instagram Embed)
-            const videoUrl = item.link.split('?')[0]; // Limpa o link para o embed
             card.innerHTML = `
-              <blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${videoUrl}" data-instgrm-version="14">
+              <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:99.375%; border:0; margin:0;">
               </blockquote>
-              <a href="${item.link}" target="_blank" class="btn-direcionamento">
-                ${item.nome || 'Acessar Clubtnp'}
-              </a>
+              <a href="${item.link}" target="_blank" class="btn-direcionar">${item.nome}</a>
             `;
-
             container.appendChild(card);
           }
         });
 
-        // Força o Instagram a processar os novos embeds adicionados
-        if (window.instgrm) {
-          window.instgrm.Embeds.process();
-        }
-
+        // Avisa o Instagram para renderizar os posts carregados
+        if (window.instgrm) { window.instgrm.Embeds.process(); }
       } catch (e) {
-        document.getElementById("feed-dinamico").innerText = "Erro ao carregar feed.";
+        document.getElementById("feed").innerText = "Erro ao carregar.";
       }
     }
-
-    carregarFeed();
+    carregar();
   </script>
 </body>
 </html>
