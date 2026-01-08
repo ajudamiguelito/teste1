@@ -1,53 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: transparent;
-      margin: 0;
-      padding: 10px;
-    }
-    #lista {
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .botao {
-      display: block;
-      padding: 16px;
-      text-align: center;
-      /* Degradê oficial do Instagram */
-      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      color: white !important;
-      text-decoration: none !important;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      transition: 0.3s ease;
-    }
-    .botao:hover { transform: scale(1.02); filter: brightness(1.1); }
-    .botao.inativo {
-      background: #cccccc !important;
-      pointer-events: none;
-      opacity: 0.6;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="lista">Carregando links...</div>
-
-  <script>
-    // Link do OpenSheet para sua planilha atualizada
+<script>
+    // URL da sua planilha via OpenSheet
     const url = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
 
     async function carregarLinks() {
@@ -56,39 +8,38 @@
         const dados = await response.json();
         const lista = document.getElementById("lista");
         
-        lista.innerHTML = ""; // Limpa o texto de carregamento
+        lista.innerHTML = ""; 
 
         dados.forEach(item => {
-          // Criar o elemento do botão
           const btn = document.createElement("a");
           btn.className = "botao";
           
-          // Puxa os dados das suas colunas (link, nome, ativo)
-          btn.href = item.link || "#";
-          btn.textContent = item.nome || "Botão sem Nome";
+          // IMPORTANTE: Aqui usamos os nomes EXATOS das suas colunas na planilha
+          // Se na planilha está "Link", aqui tem que ser item["Link"]
+          const linkDestino = item["Link"] || item["link"];
+          const nomeBotao = item["Nome do Botão"] || item["nome"];
+          const statusAtivo = item["Ativo"] || item["ativo"];
+
+          btn.href = linkDestino;
+          btn.textContent = nomeBotao;
           btn.target = "_blank";
 
-          // Lógica para desativar o botão se não estiver "sim" na coluna C
-          if (!item.ativo || item.ativo.toLowerCase() !== "sim") {
+          // Verifica se está ativo
+          if (!statusAtivo || statusAtivo.toLowerCase() !== "sim") {
             btn.classList.add("inativo");
             btn.textContent += " (Indisponível)";
           }
 
-          lista.appendChild(btn);
+          // Só adiciona se o link não for undefined
+          if (linkDestino) {
+            lista.appendChild(btn);
+          }
         });
 
-        if (dados.length === 0) {
-            lista.innerHTML = "Nenhum link encontrado na planilha.";
-        }
-
       } catch (erro) {
-        document.getElementById("lista").innerHTML = "Erro ao carregar dados da planilha.";
-        console.error("Erro:", erro);
+        document.getElementById("lista").innerHTML = "Erro ao carregar dados.";
       }
     }
 
     carregarLinks();
   </script>
-
-</body>
-</html>
