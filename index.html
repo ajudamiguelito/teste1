@@ -19,30 +19,31 @@
       color: white; border-radius: 8px; font-weight: 800; font-size: 16px; text-transform: uppercase; 
     }
 
-    .swiper { width: 100%; max-width: 350px; padding-bottom: 40px; display: none; }
-    
-    .card-container { 
-      background: white; border-radius: 10px; padding: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column;
-    }
-
-    .meu-comentario { margin: 10px 0; padding: 8px; background-color: #f8f9fa; border-left: 3px solid #dc2743; font-size: 12px; color: #333; }
+    .swiper { width: 100%; max-width: 350px; padding-bottom: 20px; display: none; }
+    .card-container { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     
     .btn-acao { 
       display: block; padding: 12px; text-align: center; 
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
-      color: white !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; 
+      color: white !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; margin-bottom: 15px;
     }
 
-    /* Estilo do Link Azul (Título da Planilha) */
-    .link-titulo {
-      display: block; text-align: center; margin-top: 12px;
-      color: #0095f6; /* Azul padrão do Instagram */
-      text-decoration: none; font-size: 14px; font-weight: 600;
+    /* Estilo da Lista de Navegação */
+    .menu-links { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+    .menu-links-titulo { font-size: 12px; color: #888; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
+    
+    .item-link {
+      display: block; padding: 8px 0; color: #0095f6; cursor: pointer;
+      text-decoration: none; font-size: 13px; font-weight: 600;
+      border-bottom: 1px solid #f9f9f9;
     }
-    .link-titulo:hover { text-decoration: underline; }
+    .item-link:last-child { border-bottom: none; }
+    .item-link:hover { text-decoration: underline; }
+    
+    /* Esconde o link do vídeo que já está na tela para não repetir */
+    .item-link.ativo { display: none; }
 
-    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.6); }
+    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.6); top: 30% !important; }
   </style>
 </head>
 <body>
@@ -57,67 +58,76 @@
     <div class="swiper-wrapper" id="meu-feed"></div>
     <div class="swiper-button-next"></div>
     <div class="swiper-button-prev"></div>
-    <div class="swiper-pagination"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
     const apiURL = "https://opensheet.elk.sh/1zEm8yPwHF7sJC0JM5E9wCTfGtpXEH10Rado4LamW5_M/Página1";
-    let listaTitulos = [];
+    let dadosPlanilha = [];
+    let swiperInstance;
 
     async function carregarFeed() {
       try {
         const response = await fetch(apiURL);
         const dadosRaw = await response.json();
-        const dados = dadosRaw.map(item => {
+        dadosPlanilha = dadosRaw.map(item => {
           const novoItem = {};
           for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
           return novoItem;
-        });
+        }).filter(item => item.ativo && item.ativo.toLowerCase() === "sim");
 
         const feed = document.getElementById("meu-feed");
-        listaTitulos = [];
+        
+        // Criar os Slides
+        dadosPlanilha.forEach((item, index) => {
+          const slide = document.createElement("div");
+          slide.className = "swiper-slide";
+          const linkLimpo = item.link.split('?')[0];
 
-        dados.forEach(item => {
-          if (item.ativo && item.ativo.toLowerCase() === "sim" && item.link) {
-            const tit = item.titulo || "Ver mais";
-            listaTitulos.push(tit);
+          // Gerar HTML da lista de links (Exclui o link atual)
+          let linksHTML = '';
+          dadosPlanilha.forEach((linkItem, linkIndex) => {
+             linksHTML += `
+              <span class="item-link ${linkIndex === index ? 'ativo' : ''}" 
+                    onclick="swiperInstance.slideTo(${linkIndex})">
+                ${linkItem.titulo || 'Vídeo ' + (linkIndex + 1)}
+              </span>`;
+          });
 
-            const slide = document.createElement("div");
-            slide.className = "swiper-slide";
-            const linkLimpo = item.link.split('?')[0];
-
-            slide.innerHTML = `
-              <div class="card-container">
-                <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:98%; margin:0 auto; border:0; background:#FFF;"></blockquote>
-                ${item.comentario ? `<div class="meu-comentario">${item.comentario}</div>` : ''}
-                <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
-                <a href="${item.link}" target="_blank" class="link-titulo">${tit}</a>
+          slide.innerHTML = `
+            <div class="card-container">
+              <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:98%; margin:0 auto; border:0; background:#FFF;"></blockquote>
+              <div style="margin: 10px 0;"></div>
+              <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
+              
+              <div class="menu-links">
+                <div class="menu-links-titulo">Sugestões de Vídeo:</div>
+                ${linksHTML}
               </div>
-            `;
-            feed.appendChild(slide);
-          }
+            </div>
+          `;
+          feed.appendChild(slide);
         });
 
         document.getElementById("loader-container").style.display = "none";
         document.getElementById("swiper-container").style.display = "block";
 
-        const swiper = new Swiper('.swiper', {
-          navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
-          pagination: { el: '.swiper-pagination', clickable: true },
+        swiperInstance = new Swiper('.swiper', {
           spaceBetween: 20,
+          navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
           on: {
             slideChange: function () {
-              document.getElementById("titulo-topo").innerText = listaTitulos[this.activeIndex];
+              const realIndex = this.activeIndex;
+              document.getElementById("titulo-topo").innerText = dadosPlanilha[realIndex].titulo;
             },
             init: function () {
-              document.getElementById("titulo-topo").innerText = listaTitulos[0] || "MEU FEED";
+              document.getElementById("titulo-topo").innerText = dadosPlanilha[0].titulo || "MEU FEED";
             }
           }
         });
 
         if (window.instgrm) { window.instgrm.Embeds.process(); }
-      } catch (e) { document.getElementById("titulo-topo").innerText = "ERRO"; }
+      } catch (e) { console.error(e); }
     }
     carregarFeed();
   </script>
