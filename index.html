@@ -6,85 +6,41 @@
   <script async src="//www.instagram.com/embed.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
   <style>
-    /* Redução geral de 30% e correção de layout */
-    body { 
-      font-family: sans-serif; 
-      background-color: #f0f2f5; 
-      margin: 0; 
-      padding: 10px; /* Reduzido */
-      overflow-x: hidden;
-    }
+    body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; overflow-x: hidden; }
     
     .header-container {
-      width: 100%;
-      max-width: 350px; /* Reduzido (era 500) */
-      margin: 5px auto 15px auto;
-      text-align: center;
-      position: relative;
-      z-index: 9999; /* Garante que fique acima de tudo */
+      width: 100%; max-width: 350px; margin: 5px auto 15px auto;
+      text-align: center; position: relative; z-index: 9999;
     }
 
     #titulo-site {
-      display: inline-block;
-      width: 100%;
-      padding: 12px 8px; /* Reduzido 30% */
+      display: inline-block; width: 100%; padding: 12px 8px;
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-      color: white;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: 16px; /* Reduzido (era 22) */
-      text-transform: uppercase;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      box-sizing: border-box;
+      color: white; border-radius: 8px; font-weight: 800; font-size: 16px;
+      text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.2); box-sizing: border-box;
     }
 
-    /* Ajuste do Carrossel para ser 30% menor */
-    .swiper { 
-      width: 100%; 
-      max-width: 350px; /* Reduzido */
-      padding-bottom: 35px; 
-      z-index: 1; /* Fica abaixo do header */
-    }
+    .swiper { width: 100%; max-width: 350px; padding-bottom: 35px; z-index: 1; cursor: grab; }
+    .swiper:active { cursor: grabbing; }
 
     .card-container { 
-      background: white; 
-      border-radius: 10px; 
-      padding: 8px; /* Reduzido */
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-      display: flex; 
-      flex-direction: column;
-      overflow: hidden;
+      background: white; border-radius: 10px; padding: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column;
     }
 
-    /* Reduzindo o comentário */
     .meu-comentario {
-      margin: 10px 5px; 
-      padding: 8px; 
-      background-color: #f8f9fa;
-      border-left: 3px solid #dc2743; 
-      font-size: 12px; /* Reduzido */
-      color: #333; 
-      line-height: 1.4;
+      margin: 10px 5px; padding: 8px; background-color: #f8f9fa;
+      border-left: 3px solid #dc2743; font-size: 12px; color: #333; line-height: 1.4;
     }
 
     .btn-acao { 
-      display: block; 
-      padding: 12px; /* Reduzido */
-      text-align: center; 
-      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
-      color: white !important; 
-      text-decoration: none !important; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      font-size: 14px; /* Reduzido */
-      margin-top: auto;
+      display: block; padding: 12px; text-align: center;
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      color: white !important; text-decoration: none !important;
+      border-radius: 6px; font-weight: bold; font-size: 14px; margin-top: auto;
     }
 
-    /* Setas menores */
-    .swiper-button-next, .swiper-button-prev { 
-      color: #cc2366; 
-      transform: scale(0.5); /* Bem menores */
-    }
+    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.5); }
   </style>
 </head>
 <body>
@@ -109,7 +65,6 @@
       try {
         const response = await fetch(apiURL);
         const dadosRaw = await response.json();
-        
         const dados = dadosRaw.map(item => {
           const novoItem = {};
           for (let chave in item) { novoItem[chave.trim()] = item[chave]; }
@@ -123,18 +78,13 @@
         dados.forEach(item => {
           if (item.ativo && item.ativo.toLowerCase() === "sim" && item.link) {
             listaTitulos.push(item.titulo || "SEM TÍTULO");
-
             const slide = document.createElement("div");
             slide.className = "swiper-slide";
             const linkLimpo = item.link.split('?')[0];
 
             slide.innerHTML = `
               <div class="card-container">
-                <blockquote class="instagram-media" 
-                  data-instgrm-permalink="${linkLimpo}" 
-                  data-instgrm-version="14" 
-                  style="width:98%; margin:0 auto; border:0; background:#FFF;">
-                </blockquote>
+                <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:98%; margin:0 auto; border:0; background:#FFF;"></blockquote>
                 ${item.comentario ? `<div class="meu-comentario">${item.comentario}</div>` : ''}
                 <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
               </div>
@@ -144,6 +94,9 @@
         });
 
         const swiper = new Swiper('.swiper', {
+          grabCursor: true, // Muda o mouse para uma mãozinha
+          allowTouchMove: true, // ATIVA O ARRASTAR NO CELULAR
+          speed: 400, // Velocidade da transição
           navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
           pagination: { el: '.swiper-pagination', clickable: true },
           spaceBetween: 20,
