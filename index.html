@@ -22,28 +22,32 @@
     .swiper { width: 100%; max-width: 350px; padding-bottom: 20px; display: none; }
     .card-container { background: white; border-radius: 10px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
     
+    /* Estilo do Comentário Reativado */
+    .meu-comentario { 
+      margin: 12px 0; padding: 8px; background-color: #f8f9fa; 
+      border-left: 3px solid #dc2743; font-size: 12px; color: #333; 
+      font-style: italic; line-height: 1.4;
+    }
+
     .btn-acao { 
       display: block; padding: 12px; text-align: center; 
       background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); 
-      color: white !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; margin-bottom: 15px;
+      color: white !important; text-decoration: none !important; border-radius: 6px; font-weight: bold;
     }
 
-    /* Estilo da Lista de Navegação */
+    /* Menu de sugestões */
     .menu-links { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
-    .menu-links-titulo { font-size: 12px; color: #888; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
+    .menu-links-titulo { font-size: 11px; color: #999; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
     
     .item-link {
-      display: block; padding: 8px 0; color: #0095f6; cursor: pointer;
+      display: block; padding: 10px 0; color: #0095f6; cursor: pointer;
       text-decoration: none; font-size: 13px; font-weight: 600;
-      border-bottom: 1px solid #f9f9f9;
+      border-bottom: 1px solid #f2f2f2;
     }
     .item-link:last-child { border-bottom: none; }
-    .item-link:hover { text-decoration: underline; }
-    
-    /* Esconde o link do vídeo que já está na tela para não repetir */
-    .item-link.ativo { display: none; }
+    .item-link.ativo { display: none; } /* Esconde o título do vídeo atual da lista */
 
-    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.6); top: 30% !important; }
+    .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.5); top: 35% !important; }
   </style>
 </head>
 <body>
@@ -78,30 +82,31 @@
 
         const feed = document.getElementById("meu-feed");
         
-        // Criar os Slides
         dadosPlanilha.forEach((item, index) => {
           const slide = document.createElement("div");
           slide.className = "swiper-slide";
           const linkLimpo = item.link.split('?')[0];
 
-          // Gerar HTML da lista de links (Exclui o link atual)
+          // Gera a lista de sugestões para este slide
           let linksHTML = '';
           dadosPlanilha.forEach((linkItem, linkIndex) => {
              linksHTML += `
               <span class="item-link ${linkIndex === index ? 'ativo' : ''}" 
                     onclick="swiperInstance.slideTo(${linkIndex})">
-                ${linkItem.titulo || 'Vídeo ' + (linkIndex + 1)}
+                ● ${linkItem.titulo || 'Vídeo ' + (linkIndex + 1)}
               </span>`;
           });
 
           slide.innerHTML = `
             <div class="card-container">
               <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:98%; margin:0 auto; border:0; background:#FFF;"></blockquote>
-              <div style="margin: 10px 0;"></div>
+              
+              ${item.comentario ? `<div class="meu-comentario">"${item.comentario}"</div>` : ''}
+              
               <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
               
               <div class="menu-links">
-                <div class="menu-links-titulo">Sugestões de Vídeo:</div>
+                <div class="menu-links-titulo">Sugestões de Conteúdo:</div>
                 ${linksHTML}
               </div>
             </div>
@@ -117,8 +122,7 @@
           navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
           on: {
             slideChange: function () {
-              const realIndex = this.activeIndex;
-              document.getElementById("titulo-topo").innerText = dadosPlanilha[realIndex].titulo;
+              document.getElementById("titulo-topo").innerText = dadosPlanilha[this.activeIndex].titulo;
             },
             init: function () {
               document.getElementById("titulo-topo").innerText = dadosPlanilha[0].titulo || "MEU FEED";
