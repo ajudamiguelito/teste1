@@ -8,7 +8,6 @@
   <style>
     body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; overflow-x: hidden; }
     
-    /* LOADING */
     #loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; width: 100%; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-left-color: #dc2743; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -24,19 +23,8 @@
       position: relative;
     }
 
-    /* A MÁGICA ESTÁ AQUI: pointer-events: none */
-    .touch-layer {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 75%;
-      z-index: 5;
-      background: transparent;
-      /* Isso permite que o arraste funcione no container, mas o CLIQUE passe para o vídeo */
-      pointer-events: none; 
-    }
-
-    /* Garantimos que o Swiper capture o arraste no card todo */
-    .swiper-slide { touch-action: pan-y; }
-
+    /* Removemos a touch-layer fixa que bloqueava o play */
+    
     .meu-comentario { margin: 10px 5px; padding: 8px; background-color: #f8f9fa; border-left: 3px solid #dc2743; font-size: 12px; color: #333; line-height: 1.4; }
     .btn-acao { display: block; padding: 12px; text-align: center; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; font-size: 14px; margin-top: auto; position: relative; z-index: 20; }
     .swiper-button-next, .swiper-button-prev { color: #cc2366; transform: scale(0.5); z-index: 30; }
@@ -88,7 +76,6 @@
 
             slide.innerHTML = `
               <div class="card-container">
-                <div class="touch-layer"></div>
                 <blockquote class="instagram-media" data-instgrm-permalink="${linkLimpo}" data-instgrm-version="14" style="width:98%; margin:0 auto; border:0; background:#FFF;"></blockquote>
                 ${item.comentario ? `<div class="meu-comentario">${item.comentario}</div>` : ''}
                 <a href="${item.link}" target="_blank" class="btn-acao">${item.nome}</a>
@@ -102,9 +89,11 @@
         document.getElementById("swiper-container").style.display = "block";
 
         const swiper = new Swiper('.swiper', {
-          // Ajustes para permitir clique e arraste juntos
-          touchStartPreventDefault: false,
-          threshold: 10, 
+          // CONFIGURAÇÕES DE TOQUE INTELIGENTE
+          touchStartPreventDefault: false, // Permite que o toque inicial chegue ao vídeo
+          threshold: 15, // Precisa mover 15px para o carrossel "roubar" o movimento
+          touchMoveStopPropagation: true, 
+          
           navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
           pagination: { el: '.swiper-pagination', clickable: true },
           spaceBetween: 20,
