@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Teste de Áudio - TNP MoB</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 20px;
+        background: #15110f;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    p {
+        color: #d8c2ad;
+        line-height: 1.4;
+    }
+
+    .card {
+        background: #241c18;
+        border: 1px solid rgba(220, 180, 140, 0.25);
+        border-radius: 18px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    button {
+        width: 100%;
+        min-height: 48px;
+        border: none;
+        border-radius: 14px;
+        margin-top: 10px;
+        font-size: 15px;
+        font-weight: bold;
+        color: #fff;
+        background: #6d3a24;
+        cursor: pointer;
+    }
+
+    button.parar {
+        background: #982b22;
+    }
+
+    audio {
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    .status {
+        color: #f0d2b2;
+        font-size: 14px;
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎙️ Teste de formatos de áudio</h1>
+
+<p>
+    Grave alguns segundos em cada formato e teste o botão de compartilhar.
+    Se não compartilhar direto, baixe e envie manualmente pelo WhatsApp.
+</p>
+
+<div class="card">
+    <strong>Formato 1 — audio/mp4</strong>
+    <p>Deve gerar arquivo .m4a se o navegador suportar.</p>
+    <button onclick="iniciarGravacao('audio/mp4', 'm4a')">Gravar audio/mp4</button>
+</div>
+
+<div class="card">
+    <strong>Formato 2 — audio/ogg;codecs=opus</strong>
+    <p>Deve gerar arquivo .ogg se o navegador suportar.</p>
+    <button onclick="iniciarGravacao('audio/ogg;codecs=opus', 'ogg')">Gravar audio/ogg</button>
+</div>
+
+<div class="card">
+    <strong>Formato 3 — audio/webm;codecs=opus</strong>
+    <p>Deve gerar arquivo .webm com codec opus.</p>
+    <button onclick="iniciarGravacao('audio/webm;codecs=opus', 'webm')">Gravar audio/webm opus</button>
+</div>
+
+<div class="card">
+    <strong>Formato 4 — audio/webm</strong>
+    <p>Formato padrão mais comum no navegador.</p>
+    <button onclick="iniciarGravacao('audio/webm', 'webm')">Gravar audio/webm</button>
+</div>
+
+<div class="card" id="boxGravacao" style="display:none;">
+    <strong id="tituloGravacao">Gravando...</strong>
+    <div class="status" id="statusGravacao">00:00</div>
+
+    <button class="parar" onclick="pararGravacao()">Parar gravação</button>
+
+    <audio id="audioPreview" controls style="display:none;"></audio>
+
+    <button id="btnBaixar" onclick="baixarArquivo()" style="display:none;">⬇️ Baixar áudio</button>
+    <button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;">📤 Compartilhar áudio</button>
+    <button id="btnDescartar" onclick="descartarArquivo()" style="display:none;">🗑️ Descartar</button>
+</div>
+
+<script>
+let mediaRecorder = null;
+let chunks = [];
+let streamAtual = null;
+
+let arquivoBlob = null;
+let arquivoUrl = "";
+let arquivoNome = "";
+let mimeAtual = "";
+let extensaoAtual = "";
+
+let timer = null;
+let inicioMs = 0;
+
+function navegadorSuporta() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Seu navegador não permite acessar o microfone.");
+        return false;
+    }
+
+    if (typeof MediaRecorder === "undefined") {
+        alert("Seu navegador não suporta MediaRecorder.");
+        return false;
+    }
+
+    return true;
+}
+
+async function iniciarGravacao(mime, extensao) {
+    if (!navegadorSuporta()) return;
+
+    if (MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(mime)) {
+        alert("Este formato NÃO é suportado neste navegador:\n\n" + mime);
+        return;
+    }
+
+    limparArquivo();
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+        });
+
+        streamAtual = stream;
+        chunks = [];
+        mimeAtual = mime;
+        extensaoAtual = extensao;
+
+        mediaRecorder = new MediaRecorder(stream, {
+            mimeType: mime
+        });
+
+        mediaRecorder.ondataavailable = function(event) {
+            if (event.data && event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = finalizarArquivo;
+
+        document.getElementById("boxGravacao").style.display = "block";
+        document.getElementById("tituloGravacao").innerText = "🎙️ Gravando em " + mime;
+        document.getElementById("statusGravacao").innerText = "00:00";
+
+        document.getElementById("audioPreview").style.display = "none";
+        document.getElementById("btnBaixar").style.display = "none";
+        document.getElementById("btnCompartilhar").style.display = "none";
+        document.getElementById("btnDescartar").style.display = "none";
+
+        inicioMs = Date.now();
+
+        clearInterval(timer);
+        timer = setInterval(atualizarTempo, 1000);
+
+        mediaRecorder.start();
+
+        document.getElementById("boxGravacao").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    } catch (erro) {
+        alert("Não foi possível acessar o microfone.");
+        console.error(erro);
+    }
+}
+
+function atualizarTempo() {
+    const segundos = Math.floor((Date.now() - inicioMs) / 1000);
+    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
+    const seg = String(segundos % 60).padStart(2, "0");
+
+    document.getElementById("statusGravacao").innerText = min + ":" + seg;
+}
+
+function pararGravacao() {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") return;
+
+    mediaRecorder.stop();
+
+    if (streamAtual) {
+        streamAtual.getTracks().forEach(track => track.stop());
+        streamAtual = null;
+    }
+
+    clearInterval(timer);
+}
+
+function finalizarArquivo() {
+    if (!chunks.length) {
+        alert("Nenhum áudio foi capturado.");
+        return;
+    }
+
+    arquivoBlob = new Blob(chunks, { type: mimeAtual });
+    arquivoUrl = URL.createObjectURL(arquivoBlob);
+
+    const dataAgora = new Date().toISOString().replace(/[:.]/g, "-");
+    arquivoNome = "teste-audio-" + extensaoAtual + "-" + dataAgora + "." + extensaoAtual;
+
+    const audio = document.getElementById("audioPreview");
+    audio.src = arquivoUrl;
+    audio.style.display = "block";
+
+    document.getElementById("tituloGravacao").innerText = "✅ Áudio finalizado";
+    document.getElementById("statusGravacao").innerText =
+        "Formato: " + mimeAtual + " | Arquivo: " + arquivoNome;
+
+    document.getElementById("btnBaixar").style.display = "block";
+    document.getElementById("btnCompartilhar").style.display = "block";
+    document.getElementById("btnDescartar").style.display = "block";
+}
+
+function baixarArquivo() {
+    if (!arquivoBlob || !arquivoUrl) {
+        alert("Nenhum arquivo para baixar.");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.href = arquivoUrl;
+    link.download = arquivoNome;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+async function compartilharArquivo() {
+    if (!arquivoBlob) {
+        alert("Nenhum arquivo para compartilhar.");
+        return;
+    }
+
+    const arquivo = new File([arquivoBlob], arquivoNome, {
+        type: arquivoBlob.type || mimeAtual
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+        try {
+            await navigator.share({
+                title: "Teste de áudio TNP MoB",
+                text: "Teste de compartilhamento de áudio.",
+                files: [arquivo]
+            });
+        } catch (erro) {
+            alert("Compartilhamento cancelado ou falhou.");
+            console.warn(erro);
+        }
+
+        return;
+    }
+
+    alert("Este navegador não permite compartilhar esse arquivo direto. Baixe e envie manualmente.");
+}
+
+function descartarArquivo() {
+    limparArquivo();
+    document.getElementById("boxGravacao").style.display = "none";
+}
+
+function limparArquivo() {
+    clearInterval(timer);
+
+    if (streamAtual) {
+        streamAtual.getTracks().forEach(track => track.stop());
+        streamAtual = null;
+    }
+
+    if (arquivoUrl) {
+        URL.revokeObjectURL(arquivoUrl);
+    }
+
+    mediaRecorder = null;
+    chunks = [];
+    arquivoBlob = null;
+    arquivoUrl = "";
+    arquivoNome = "";
+    mimeAtual = "";
+    extensaoAtual = "";
+}
+</script>
+
+</body>
+</html>
