@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Teste de Áudio - TNP MoB</title>
-
+<title>Gravador TNP MoB - WhatsApp Fix</title>
 <style>
     body {
         margin: 0;
@@ -14,313 +12,166 @@
         color: #fff;
         font-family: Arial, sans-serif;
     }
-
-    h1 {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
-
-    p {
-        color: #d8c2ad;
-        line-height: 1.4;
-    }
-
     .card {
         background: #241c18;
         border: 1px solid rgba(220, 180, 140, 0.25);
         border-radius: 18px;
-        padding: 16px;
+        padding: 20px;
         margin-bottom: 16px;
+        text-align: center;
     }
-
     button {
         width: 100%;
-        min-height: 48px;
+        min-height: 54px;
         border: none;
         border-radius: 14px;
-        margin-top: 10px;
-        font-size: 15px;
+        margin-top: 12px;
+        font-size: 16px;
         font-weight: bold;
         color: #fff;
         background: #6d3a24;
         cursor: pointer;
-        transition: background 0.2s;
     }
-
-    button:active {
-        opacity: 0.8;
+    button.whatsapp {
+        background: #25D366;
     }
-
     button.parar {
         background: #982b22;
     }
-
-    button.whatsapp {
-        background: #25D366;
-        color: #fff;
-    }
-
-    audio {
-        width: 100%;
-        margin-top: 12px;
-    }
-
     .status {
         color: #f0d2b2;
-        font-size: 14px;
-        margin-top: 10px;
-        word-break: break-all;
+        font-size: 18px;
+        margin: 15px 0;
+        font-weight: bold;
     }
-
-    #logCompartilhamento {
+    audio {
+        width: 100%;
+        margin-top: 15px;
+    }
+    #log {
         font-size: 12px;
-        color: #aaa;
-        margin-top: 8px;
-        font-style: italic;
+        color: #888;
+        margin-top: 10px;
     }
 </style>
 </head>
-
 <body>
 
-<h1>🎙️ Teste de formatos de áudio</h1>
-
-<p>
-    Grave alguns segundos e teste o botão de compartilhar. 
-    O formato <b>audio/webm</b> é o mais compatível com navegadores modernos.
-</p>
-
 <div class="card">
-    <strong>Formato 4 — audio/webm (Recomendado)</strong>
-    <p>Formato padrão mais comum no navegador.</p>
-    <button onclick="iniciarGravacao('audio/webm', 'webm')">Gravar audio/webm</button>
-</div>
-
-<div class="card">
-    <strong>Outros Formatos</strong>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button onclick="iniciarGravacao('audio/mp4', 'm4a')">audio/mp4</button>
-        <button onclick="iniciarGravacao('audio/ogg;codecs=opus', 'ogg')">audio/ogg</button>
-    </div>
-</div>
-
-<div class="card" id="boxGravacao" style="display:none;">
-    <strong id="tituloGravacao">Gravando...</strong>
-    <div class="status" id="statusGravacao">00:00</div>
-
-    <button class="parar" id="btnParar" onclick="pararGravacao()">Parar gravação</button>
-
-    <audio id="audioPreview" controls style="display:none;"></audio>
-
-    <button id="btnCompartilhar" class="whatsapp" onclick="compartilharArquivo()" style="display:none;">📤 Enviar para WhatsApp</button>
-    <button id="btnBaixar" onclick="baixarArquivo()" style="display:none;">⬇️ Baixar áudio</button>
-    <button id="btnDescartar" onclick="descartarArquivo()" style="display:none;">🗑️ Descartar</button>
+    <h2>🎙️ Gravador de Áudio</h2>
+    <p>Focado no formato <b>WebM</b> com truque de compatibilidade para WhatsApp.</p>
     
-    <div id="logCompartilhamento"></div>
+    <div id="controles">
+        <button id="btnGravar" onclick="iniciar()">🔴 Iniciar Gravação</button>
+        <button id="btnParar" class="parar" onclick="parar()" style="display:none;">⏹️ Parar</button>
+    </div>
+
+    <div id="resultado" style="display:none;">
+        <div class="status" id="timer">00:00</div>
+        <audio id="player" controls></audio>
+        <button class="whatsapp" onclick="compartilhar()">📤 Enviar para WhatsApp</button>
+        <button onclick="resetar()">🗑️ Descartar e Novo</button>
+    </div>
+    
+    <div id="log">Aguardando...</div>
 </div>
 
 <script>
-let mediaRecorder = null;
+let recorder;
 let chunks = [];
-let streamAtual = null;
-
-let arquivoBlob = null;
-let arquivoUrl = "";
-let arquivoNome = "";
-let mimeAtual = "";
-let extensaoAtual = "";
-
-let timer = null;
-let inicioMs = 0;
+let stream;
+let audioBlob;
+let startTime;
+let timerInterval;
 
 function log(msg) {
-    document.getElementById("logCompartilhamento").innerText = msg;
+    document.getElementById('log').innerText = msg;
+    console.log(msg);
 }
 
-function navegadorSuporta() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Seu navegador não permite acessar o microfone.");
-        return false;
-    }
-    if (typeof MediaRecorder === "undefined") {
-        alert("Seu navegador não suporta MediaRecorder.");
-        return false;
-    }
-    return true;
-}
-
-async function iniciarGravacao(mime, extensao) {
-    if (!navegadorSuporta()) return;
-
-    // Verificar suporte ao MIME type
-    if (MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(mime)) {
-        alert("Este formato NÃO é suportado neste navegador:\n\n" + mime);
-        return;
-    }
-
-    limparArquivo();
-
+async function iniciar() {
+    chunks = [];
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false
-        });
-
-        streamAtual = stream;
-        chunks = [];
-        mimeAtual = mime;
-        extensaoAtual = extensao;
-
-        mediaRecorder = new MediaRecorder(stream, {
-            mimeType: mime
-        });
-
-        mediaRecorder.ondataavailable = function(event) {
-            if (event.data && event.data.size > 0) {
-                chunks.push(event.data);
-            }
-        };
-
-        mediaRecorder.onstop = finalizarArquivo;
-
-        document.getElementById("boxGravacao").style.display = "block";
-        document.getElementById("tituloGravacao").innerText = "🎙️ Gravando...";
-        document.getElementById("statusGravacao").innerText = "00:00";
-        log("");
-
-        document.getElementById("audioPreview").style.display = "none";
-        document.getElementById("btnParar").style.display = "block";
-        document.getElementById("btnBaixar").style.display = "none";
-        document.getElementById("btnCompartilhar").style.display = "none";
-        document.getElementById("btnDescartar").style.display = "none";
-
-        inicioMs = Date.now();
-        clearInterval(timer);
-        timer = setInterval(atualizarTempo, 1000);
-
-        mediaRecorder.start();
-
-        document.getElementById("boxGravacao").scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
-    } catch (erro) {
-        alert("Não foi possível acessar o microfone. Verifique as permissões.");
-        console.error(erro);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Tentamos o webm puro que você prefere
+        const options = { mimeType: 'audio/webm' };
+        recorder = new MediaRecorder(stream, options);
+        
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = processar;
+        
+        recorder.start();
+        startTime = Date.now();
+        timerInterval = setInterval(atualizarTimer, 1000);
+        
+        document.getElementById('btnGravar').style.display = 'none';
+        document.getElementById('btnParar').style.display = 'block';
+        document.getElementById('resultado').style.display = 'none';
+        log("Gravando...");
+    } catch (err) {
+        alert("Erro ao acessar microfone: " + err);
     }
 }
 
-function atualizarTempo() {
-    const segundos = Math.floor((Date.now() - inicioMs) / 1000);
-    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
-    const seg = String(segundos % 60).padStart(2, "0");
-    document.getElementById("statusGravacao").innerText = min + ":" + seg;
+function atualizarTimer() {
+    const segs = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(segs / 60)).padStart(2, '0');
+    const s = String(segs % 60).padStart(2, '0');
+    document.getElementById('timer').innerText = `${m}:${s}`;
 }
 
-function pararGravacao() {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-    mediaRecorder.stop();
-    if (streamAtual) {
-        streamAtual.getTracks().forEach(track => track.stop());
-        streamAtual = null;
-    }
-    clearInterval(timer);
+function parar() {
+    recorder.stop();
+    stream.getTracks().forEach(t => t.stop());
+    clearInterval(timerInterval);
+    document.getElementById('btnParar').style.display = 'none';
+    document.getElementById('btnGravar').style.display = 'block';
 }
 
-function finalizarArquivo() {
-    if (!chunks.length) {
-        alert("Nenhum áudio foi capturado.");
-        return;
-    }
+function processar() {
+    audioBlob = new Blob(chunks, { type: 'audio/webm' });
+    const url = URL.createObjectURL(audioBlob);
+    document.getElementById('player').src = url;
+    document.getElementById('resultado').style.display = 'block';
+    log("Pronto para enviar.");
+}
 
-    // Criar o Blob com o tipo correto
-    arquivoBlob = new Blob(chunks, { type: mimeAtual });
-    arquivoUrl = URL.createObjectURL(arquivoBlob);
+async function compartilhar() {
+    if (!audioBlob) return;
 
-    const dataAgora = new Date().getTime();
-    arquivoNome = "audio-" + dataAgora + "." + extensaoAtual;
-
-    const audio = document.getElementById("audioPreview");
-    audio.src = arquivoUrl;
-    audio.style.display = "block";
-
-    document.getElementById("tituloGravacao").innerText = "✅ Gravação Pronta";
-    document.getElementById("btnParar").style.display = "none";
-    document.getElementById("btnBaixar").style.display = "block";
-    document.getElementById("btnCompartilhar").style.display = "block";
-    document.getElementById("btnDescartar").style.display = "block";
+    /* 
+       TRUQUE DE COMPATIBILIDADE:
+       O WhatsApp muitas vezes rejeita .webm vindo do navegador com esse erro de "algo errado".
+       Ao renomear para .ogg ou .mp3 (mesmo sendo webm por dentro), o WhatsApp 
+       costuma processar o arquivo corretamente através da Web Share API.
+    */
+    const nomeArquivo = "audio-" + Date.now() + ".ogg"; 
     
-    log("Pronto para compartilhar.");
-}
+    // Criamos o arquivo "disfarçado"
+    const file = new File([audioBlob], nomeArquivo, { type: 'audio/ogg' });
 
-async function compartilharArquivo() {
-    if (!arquivoBlob) {
-        alert("Nenhum arquivo para compartilhar.");
-        return;
-    }
-
-    // Criar um objeto File a partir do Blob
-    // Importante: Alguns sistemas (iOS) precisam que o nome do arquivo seja consistente
-    const arquivo = new File([arquivoBlob], arquivoNome, {
-        type: arquivoBlob.type
-    });
-
-    // Verificar se o navegador suporta compartilhamento de arquivos
-    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-            log("Abrindo menu de compartilhamento...");
+            log("Abrindo WhatsApp...");
             await navigator.share({
-                files: [arquivo],
-                title: 'Áudio Gravado',
-                text: 'Ouça este áudio que acabei de gravar.'
+                files: [file],
+                title: 'Áudio TNP',
+                text: ''
             });
-            log("Compartilhamento concluído!");
-        } catch (erro) {
-            if (erro.name === 'AbortError') {
-                log("Compartilhamento cancelado.");
-            } else {
-                log("Erro ao compartilhar: " + erro.message);
-                alert("Erro ao compartilhar. Tente baixar o arquivo.");
-            }
+            log("Enviado!");
+        } catch (err) {
+            log("Erro ou cancelado: " + err.message);
         }
     } else {
-        log("Compartilhamento de arquivo não suportado neste navegador.");
-        alert("Seu navegador não suporta o compartilhamento direto de arquivos. Por favor, use o botão 'Baixar' e envie manualmente pelo WhatsApp.");
+        alert("Seu navegador não suporta compartilhamento de arquivos.");
     }
 }
 
-function baixarArquivo() {
-    if (!arquivoBlob || !arquivoUrl) return;
-    const link = document.createElement("a");
-    link.href = arquivoUrl;
-    link.download = arquivoNome;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function descartarArquivo() {
-    limparArquivo();
-    document.getElementById("boxGravacao").style.display = "none";
-}
-
-function limparArquivo() {
-    clearInterval(timer);
-    if (streamAtual) {
-        streamAtual.getTracks().forEach(track => track.stop());
-        streamAtual = null;
-    }
-    if (arquivoUrl) {
-        URL.revokeObjectURL(arquivoUrl);
-    }
-    mediaRecorder = null;
-    chunks = [];
-    arquivoBlob = null;
-    arquivoUrl = "";
-    arquivoNome = "";
-    mimeAtual = "";
-    extensaoAtual = "";
+function resetar() {
+    document.getElementById('resultado').style.display = 'none';
+    document.getElementById('timer').innerText = "00:00";
+    log("Aguardando...");
 }
 </script>
 
