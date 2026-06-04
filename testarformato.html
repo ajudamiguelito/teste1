@@ -1,316 +1,528 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Link de Pagamento TNP</title>
 
-<title>Teste de Áudio - TNP MoB</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-<style>
-    body {
-        margin: 0;
-        padding: 20px;
-        background: #15110f;
-        color: #fff;
-        font-family: Arial, sans-serif;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top center, rgba(205, 170, 135, 0.16), transparent 35%),
+                linear-gradient(180deg, #1d1a17 0%, #12100f 100%);
+            color: #ffffff;
+            padding: 20px;
+        }
 
-    h1 {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
+        .box {
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            background: rgba(34, 29, 25, 0.96);
+            border: 1px solid rgba(211, 176, 140, 0.28);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+        }
 
-    p {
-        color: #d8c2ad;
-        line-height: 1.4;
-    }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 24px;
+            text-align: center;
+        }
 
-    .card {
-        background: #241c18;
-        border: 1px solid rgba(220, 180, 140, 0.25);
-        border-radius: 18px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
+        .sub {
+            margin: 0 0 18px;
+            color: #d1b59c;
+            font-size: 13px;
+            line-height: 1.4;
+            text-align: center;
+        }
 
-    button {
-        width: 100%;
-        min-height: 48px;
-        border: none;
-        border-radius: 14px;
-        margin-top: 10px;
-        font-size: 15px;
-        font-weight: bold;
-        color: #fff;
-        background: #6d3a24;
-        cursor: pointer;
-    }
+        .grupo {
+            margin-bottom: 13px;
+        }
 
-    button.parar {
-        background: #982b22;
-    }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #d8b48e;
+            font-weight: bold;
+        }
 
-    audio {
-        width: 100%;
-        margin-top: 12px;
-    }
+        input,
+        textarea {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid rgba(211, 176, 140, 0.25);
+            border-radius: 13px;
+            background: #171310;
+            color: #ffffff;
+            padding: 10px 12px;
+            outline: none;
+            font-size: 14px;
+        }
 
-    .status {
-        color: #f0d2b2;
-        font-size: 14px;
-        margin-top: 10px;
-    }
-</style>
+        textarea {
+            min-height: 76px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            min-height: 48px;
+            border: none;
+            border-radius: 15px;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            color: #ffffff;
+            background: linear-gradient(180deg, #7a4429 0%, #60331f 100%);
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-verde {
+            background: linear-gradient(180deg, #27864f 0%, #1d673d 100%);
+        }
+
+        .btn-amarelo {
+            background: linear-gradient(180deg, #b47a25 0%, #8a5a18 100%);
+        }
+
+        .resultado {
+            display: none;
+            margin-top: 18px;
+            border-top: 1px solid rgba(211, 176, 140, 0.18);
+            padding-top: 16px;
+        }
+
+        .status {
+            margin-top: 14px;
+            padding: 13px;
+            border-radius: 16px;
+            background: rgba(211, 176, 140, 0.10);
+            border: 1px solid rgba(211, 176, 140, 0.18);
+            color: #f2d7bd;
+            font-size: 13px;
+            line-height: 1.4;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .status.pago {
+            background: rgba(39, 134, 79, 0.18);
+            border-color: rgba(39, 134, 79, 0.38);
+            color: #bff3d3;
+        }
+
+        .status.erro {
+            background: rgba(150, 40, 35, 0.18);
+            border-color: rgba(210, 70, 55, 0.38);
+            color: #ffc5bd;
+        }
+
+        .info-link {
+            font-size: 12px;
+            color: #d1b59c;
+            word-break: break-all;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .linha {
+            height: 1px;
+            background: rgba(211, 176, 140, 0.15);
+            margin: 18px 0;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>🎙️ Teste de formatos de áudio</h1>
+<div class="box">
+    <h1>🔗 Link de Pagamento TNP</h1>
+    <p class="sub">
+        Tela simples para testar criação de link, abertura do pagamento e confirmação automática pelo webhook.
+    </p>
 
-<p>
-    Grave alguns segundos em cada formato e teste o botão de compartilhar.
-    Se não compartilhar direto, baixe e envie manualmente pelo WhatsApp.
-</p>
+    <div class="grupo">
+        <label>E-mail do usuário teste</label>
+        <input type="email" id="email" placeholder="seu@email.com">
+    </div>
 
-<div class="card">
-    <strong>Formato 1 — audio/mp4</strong>
-    <p>Deve gerar arquivo .m4a se o navegador suportar.</p>
-    <button onclick="iniciarGravacao('audio/mp4', 'm4a')">Gravar audio/mp4</button>
+    <div class="grupo">
+        <label>Senha</label>
+        <input type="password" id="senha" placeholder="Senha do Firebase">
+    </div>
+
+    <button type="button" onclick="TNP_LINK_func_loginTeste()">
+        Entrar no Firebase
+    </button>
+
+    <div id="statusLogin" class="status">
+        Faça login para gerar o link.
+    </div>
+
+    <div class="linha"></div>
+
+    <div class="grupo">
+        <label>Valor</label>
+        <input type="text" id="valor" placeholder="Ex: 1,00" inputmode="decimal" value="1,00">
+    </div>
+
+    <div class="grupo">
+        <label>Título</label>
+        <input type="text" id="titulo" value="Teste Link TNP MoB">
+    </div>
+
+    <div class="grupo">
+        <label>Descrição</label>
+        <textarea id="descricao">Teste de pagamento por link TNP MoB</textarea>
+    </div>
+
+    <button type="button" id="btnGerar" onclick="TNP_LINK_func_gerarLink()" disabled>
+        Gerar link de pagamento
+    </button>
+
+    <div id="resultado" class="resultado">
+        <div id="statusPagamento" class="status">
+            Aguardando geração do link...
+        </div>
+
+        <button type="button" id="btnAbrirLink" class="btn-verde" onclick="TNP_LINK_func_abrirLink()" style="display:none;">
+            Abrir link de pagamento
+        </button>
+
+        <button type="button" id="btnVerificar" class="btn-amarelo" onclick="TNP_LINK_func_verificarPagamento()" style="display:none;">
+            Verificar pagamento
+        </button>
+
+        <div id="infoLink" class="info-link"></div>
+    </div>
 </div>
 
-<div class="card">
-    <strong>Formato 2 — audio/ogg;codecs=opus</strong>
-    <p>Deve gerar arquivo .ogg se o navegador suportar.</p>
-    <button onclick="iniciarGravacao('audio/ogg;codecs=opus', 'ogg')">Gravar audio/ogg</button>
-</div>
-
-<div class="card">
-    <strong>Formato 3 — audio/webm;codecs=opus</strong>
-    <p>Deve gerar arquivo .webm com codec opus.</p>
-    <button onclick="iniciarGravacao('audio/webm;codecs=opus', 'webm')">Gravar audio/webm opus</button>
-</div>
-
-<div class="card">
-    <strong>Formato 4 — audio/webm</strong>
-    <p>Formato padrão mais comum no navegador.</p>
-    <button onclick="iniciarGravacao('audio/webm', 'webm')">Gravar audio/webm</button>
-</div>
-
-<div class="card" id="boxGravacao" style="display:none;">
-    <strong id="tituloGravacao">Gravando...</strong>
-    <div class="status" id="statusGravacao">00:00</div>
-
-    <button class="parar" onclick="pararGravacao()">Parar gravação</button>
-
-    <audio id="audioPreview" controls style="display:none;"></audio>
-
-    <button id="btnBaixar" onclick="baixarArquivo()" style="display:none;">⬇️ Baixar áudio</button>
-    <button id="btnCompartilhar" onclick="compartilharArquivo()" style="display:none;">📤 Compartilhar áudio</button>
-    <button id="btnDescartar" onclick="descartarArquivo()" style="display:none;">🗑️ Descartar</button>
-</div>
+<!-- Firebase v8 -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
 
 <script>
-let mediaRecorder = null;
-let chunks = [];
-let streamAtual = null;
+    // COLE AQUI A MESMA CONFIGURAÇÃO FIREBASE DO SEU APP
+    const PRIMEIRAPAG_Login_config_firebase = {
+		apiKey: "AIzaSyAN13M1GGwYmyQA4131HB23cGX1SLWmlsQ",
+		authDomain: "tnp-mob.firebaseapp.com",
+		projectId: "tnp-mob",
+		storageBucket: "tnp-mob.firebasestorage.app",
+		messagingSenderId: "775995955512",
+		appId: "1:775995955512:web:07d865e4480e0bf33909cd"
+	};
 
-let arquivoBlob = null;
-let arquivoUrl = "";
-let arquivoNome = "";
-let mimeAtual = "";
-let extensaoAtual = "";
+	firebase.initializeApp(PRIMEIRAPAG_Login_config_firebase);
 
-let timer = null;
-let inicioMs = 0;
+	var TNP_LINK_auth = firebase.auth();
+	var TNP_LINK_db = firebase.firestore();
+	var TNP_LINK_functions = firebase.functions();
 
-function navegadorSuporta() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Seu navegador não permite acessar o microfone.");
-        return false;
+	var TNP_LINK_auth = firebase.auth();
+	var TNP_LINK_db = firebase.firestore();
+	var TNP_LINK_functions = firebase.functions();
+
+	var TNP_LINK_linkPagamentoId = "";
+	var TNP_LINK_urlPagamento = "";
+	var TNP_LINK_unsubscribe = null;
+	var TNP_LINK_gerando = false;
+
+    function TNP_LINK_func_mostrarStatusLogin(msg, tipo) {
+        const el = document.getElementById("statusLogin");
+        if (!el) return;
+
+        el.className = "status" + (tipo ? " " + tipo : "");
+        el.innerText = msg;
     }
 
-    if (typeof MediaRecorder === "undefined") {
-        alert("Seu navegador não suporta MediaRecorder.");
-        return false;
+    function TNP_LINK_func_mostrarStatusPagamento(msg, tipo) {
+        const el = document.getElementById("statusPagamento");
+        if (!el) return;
+
+        el.className = "status" + (tipo ? " " + tipo : "");
+        el.innerText = msg;
     }
 
-    return true;
-}
+    function TNP_LINK_func_converterValor(valorDigitado) {
+        const limpo = String(valorDigitado || "")
+            .replace(/\s/g, "")
+            .replace("R$", "")
+            .replace(/\./g, "")
+            .replace(",", ".");
 
-async function iniciarGravacao(mime, extensao) {
-    if (!navegadorSuporta()) return;
+        const numero = Number(limpo);
 
-    if (MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(mime)) {
-        alert("Este formato NÃO é suportado neste navegador:\n\n" + mime);
-        return;
-    }
-
-    limparArquivo();
-
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false
-        });
-
-        streamAtual = stream;
-        chunks = [];
-        mimeAtual = mime;
-        extensaoAtual = extensao;
-
-        mediaRecorder = new MediaRecorder(stream, {
-            mimeType: mime
-        });
-
-        mediaRecorder.ondataavailable = function(event) {
-            if (event.data && event.data.size > 0) {
-                chunks.push(event.data);
-            }
-        };
-
-        mediaRecorder.onstop = finalizarArquivo;
-
-        document.getElementById("boxGravacao").style.display = "block";
-        document.getElementById("tituloGravacao").innerText = "🎙️ Gravando em " + mime;
-        document.getElementById("statusGravacao").innerText = "00:00";
-
-        document.getElementById("audioPreview").style.display = "none";
-        document.getElementById("btnBaixar").style.display = "none";
-        document.getElementById("btnCompartilhar").style.display = "none";
-        document.getElementById("btnDescartar").style.display = "none";
-
-        inicioMs = Date.now();
-
-        clearInterval(timer);
-        timer = setInterval(atualizarTempo, 1000);
-
-        mediaRecorder.start();
-
-        document.getElementById("boxGravacao").scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
-    } catch (erro) {
-        alert("Não foi possível acessar o microfone.");
-        console.error(erro);
-    }
-}
-
-function atualizarTempo() {
-    const segundos = Math.floor((Date.now() - inicioMs) / 1000);
-    const min = String(Math.floor(segundos / 60)).padStart(2, "0");
-    const seg = String(segundos % 60).padStart(2, "0");
-
-    document.getElementById("statusGravacao").innerText = min + ":" + seg;
-}
-
-function pararGravacao() {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-
-    mediaRecorder.stop();
-
-    if (streamAtual) {
-        streamAtual.getTracks().forEach(track => track.stop());
-        streamAtual = null;
-    }
-
-    clearInterval(timer);
-}
-
-function finalizarArquivo() {
-    if (!chunks.length) {
-        alert("Nenhum áudio foi capturado.");
-        return;
-    }
-
-    arquivoBlob = new Blob(chunks, { type: mimeAtual });
-    arquivoUrl = URL.createObjectURL(arquivoBlob);
-
-    const dataAgora = new Date().toISOString().replace(/[:.]/g, "-");
-    arquivoNome = "teste-audio-" + extensaoAtual + "-" + dataAgora + "." + extensaoAtual;
-
-    const audio = document.getElementById("audioPreview");
-    audio.src = arquivoUrl;
-    audio.style.display = "block";
-
-    document.getElementById("tituloGravacao").innerText = "✅ Áudio finalizado";
-    document.getElementById("statusGravacao").innerText =
-        "Formato: " + mimeAtual + " | Arquivo: " + arquivoNome;
-
-    document.getElementById("btnBaixar").style.display = "block";
-    document.getElementById("btnCompartilhar").style.display = "block";
-    document.getElementById("btnDescartar").style.display = "block";
-}
-
-function baixarArquivo() {
-    if (!arquivoBlob || !arquivoUrl) {
-        alert("Nenhum arquivo para baixar.");
-        return;
-    }
-
-    const link = document.createElement("a");
-    link.href = arquivoUrl;
-    link.download = arquivoNome;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-async function compartilharArquivo() {
-    if (!arquivoBlob) {
-        alert("Nenhum arquivo para compartilhar.");
-        return;
-    }
-
-    const arquivo = new File([arquivoBlob], arquivoNome, {
-        type: arquivoBlob.type || mimeAtual
-    });
-
-    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
-        try {
-            await navigator.share({
-                title: "Teste de áudio TNP MoB",
-                text: "Teste de compartilhamento de áudio.",
-                files: [arquivo]
-            });
-        } catch (erro) {
-            alert("Compartilhamento cancelado ou falhou.");
-            console.warn(erro);
+        if (!Number.isFinite(numero)) {
+            return 0;
         }
 
-        return;
+        return Math.round(numero * 100) / 100;
     }
 
-    alert("Este navegador não permite compartilhar esse arquivo direto. Baixe e envie manualmente.");
-}
+    async function TNP_LINK_func_loginTeste() {
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value.trim();
 
-function descartarArquivo() {
-    limparArquivo();
-    document.getElementById("boxGravacao").style.display = "none";
-}
+        if (!email || !senha) {
+            TNP_LINK_func_mostrarStatusLogin("Preencha e-mail e senha.", "erro");
+            return;
+        }
 
-function limparArquivo() {
-    clearInterval(timer);
+        try {
+            TNP_LINK_func_mostrarStatusLogin("Entrando...", "");
 
-    if (streamAtual) {
-        streamAtual.getTracks().forEach(track => track.stop());
-        streamAtual = null;
+            await TNP_LINK_auth.signInWithEmailAndPassword(email, senha);
+
+            document.getElementById("btnGerar").disabled = false;
+
+            TNP_LINK_func_mostrarStatusLogin(
+                "Login confirmado. Agora você pode gerar o link.",
+                "pago"
+            );
+
+        } catch (erro) {
+            console.error("Erro login:", erro);
+            TNP_LINK_func_mostrarStatusLogin(
+                "Erro ao fazer login: " + (erro.message || erro),
+                "erro"
+            );
+        }
     }
 
-    if (arquivoUrl) {
-        URL.revokeObjectURL(arquivoUrl);
+    async function TNP_LINK_func_gerarLink() {
+        if (TNP_LINK_gerando) return;
+
+        const user = TNP_LINK_auth.currentUser;
+
+        if (!user) {
+            TNP_LINK_func_mostrarStatusLogin("Você precisa fazer login primeiro.", "erro");
+            return;
+        }
+
+        const valor = TNP_LINK_func_converterValor(document.getElementById("valor").value);
+        const titulo = document.getElementById("titulo").value.trim();
+        const descricao = document.getElementById("descricao").value.trim();
+
+        if (!valor || valor < 0.01) {
+            TNP_LINK_func_mostrarStatusPagamento("Valor inválido.", "erro");
+            return;
+        }
+
+        if (!titulo || titulo.length < 3) {
+            TNP_LINK_func_mostrarStatusPagamento("Título inválido.", "erro");
+            return;
+        }
+
+        TNP_LINK_gerando = true;
+
+        const btnGerar = document.getElementById("btnGerar");
+        const resultado = document.getElementById("resultado");
+        const btnAbrir = document.getElementById("btnAbrirLink");
+        const btnVerificar = document.getElementById("btnVerificar");
+        const infoLink = document.getElementById("infoLink");
+
+        try {
+            if (btnGerar) {
+                btnGerar.disabled = true;
+                btnGerar.innerText = "Gerando link...";
+            }
+
+            if (resultado) resultado.style.display = "block";
+            if (btnAbrir) btnAbrir.style.display = "none";
+            if (btnVerificar) btnVerificar.style.display = "none";
+            if (infoLink) infoLink.innerText = "";
+
+            TNP_LINK_func_mostrarStatusPagamento("Gerando link de pagamento na TNP...", "");
+
+            const gerarLink = TNP_LINK_functions.httpsCallable("gerarLinkPagamentoTesteTNP");
+
+            const resposta = await gerarLink({
+                valor: valor,
+                titulo: titulo,
+                descricao: descricao
+            });
+
+            const dados = resposta.data || {};
+
+            if (!dados.ok || !dados.linkPagamentoId || !dados.urlPagamento) {
+                throw new Error("A função não retornou o link corretamente.");
+            }
+
+            TNP_LINK_linkPagamentoId = String(dados.linkPagamentoId);
+            TNP_LINK_urlPagamento = String(dados.urlPagamento);
+
+            TNP_LINK_func_mostrarStatusPagamento(
+                "Link criado. Aguardando pagamento...",
+                ""
+            );
+
+            if (btnAbrir) btnAbrir.style.display = "block";
+            if (btnVerificar) btnVerificar.style.display = "block";
+            if (infoLink) {
+                infoLink.innerText =
+                    "ID: " + TNP_LINK_linkPagamentoId + "\n" +
+                    "URL: " + TNP_LINK_urlPagamento;
+            }
+
+            TNP_LINK_func_ouvirPagamento(TNP_LINK_linkPagamentoId);
+
+        } catch (erro) {
+            console.error("Erro ao gerar link:", erro);
+
+            TNP_LINK_func_mostrarStatusPagamento(
+                "Erro ao gerar link: " + (erro.message || erro),
+                "erro"
+            );
+
+        } finally {
+            TNP_LINK_gerando = false;
+
+            if (btnGerar) {
+                btnGerar.disabled = false;
+                btnGerar.innerText = "Gerar link de pagamento";
+            }
+        }
     }
 
-    mediaRecorder = null;
-    chunks = [];
-    arquivoBlob = null;
-    arquivoUrl = "";
-    arquivoNome = "";
-    mimeAtual = "";
-    extensaoAtual = "";
-}
+    function TNP_LINK_func_abrirLink() {
+        if (!TNP_LINK_urlPagamento) {
+            TNP_LINK_func_mostrarStatusPagamento("Nenhum link gerado ainda.", "erro");
+            return;
+        }
+
+        window.open(TNP_LINK_urlPagamento, "_blank");
+    }
+
+    function TNP_LINK_func_ouvirPagamento(linkPagamentoId) {
+        if (TNP_LINK_unsubscribe) {
+            TNP_LINK_unsubscribe();
+            TNP_LINK_unsubscribe = null;
+        }
+
+        TNP_LINK_unsubscribe = TNP_LINK_db
+            .collection("pagamentosTnpLinks")
+            .doc(String(linkPagamentoId))
+            .onSnapshot(function (doc) {
+                if (!doc.exists) {
+                    TNP_LINK_func_mostrarStatusPagamento(
+                        "Documento do pagamento ainda não encontrado.",
+                        ""
+                    );
+                    return;
+                }
+
+                const dados = doc.data() || {};
+
+                if (dados.status === "pago") {
+                    TNP_LINK_func_mostrarStatusPagamento(
+                        "✅ Pagamento confirmado com sucesso!",
+                        "pago"
+                    );
+
+                    return;
+                }
+
+                if (dados.status === "erro") {
+                    TNP_LINK_func_mostrarStatusPagamento(
+                        "Pagamento com erro.",
+                        "erro"
+                    );
+
+                    return;
+                }
+
+                TNP_LINK_func_mostrarStatusPagamento(
+                    "Status atual: " + (dados.status || "aguardando_pagamento"),
+                    ""
+                );
+            }, function (erro) {
+                console.error("Erro listener:", erro);
+
+                TNP_LINK_func_mostrarStatusPagamento(
+                    "Erro ao ouvir pagamento: " + (erro.message || erro),
+                    "erro"
+                );
+            });
+    }
+
+    async function TNP_LINK_func_verificarPagamento() {
+        if (!TNP_LINK_linkPagamentoId) {
+            TNP_LINK_func_mostrarStatusPagamento("Nenhum pagamento gerado ainda.", "erro");
+            return;
+        }
+
+        try {
+            const snap = await TNP_LINK_db
+                .collection("pagamentosTnpLinks")
+                .doc(String(TNP_LINK_linkPagamentoId))
+                .get();
+
+            if (!snap.exists) {
+                TNP_LINK_func_mostrarStatusPagamento(
+                    "Pagamento ainda não encontrado no Firestore.",
+                    ""
+                );
+                return;
+            }
+
+            const dados = snap.data() || {};
+
+            if (dados.status === "pago") {
+                TNP_LINK_func_mostrarStatusPagamento(
+                    "✅ Pagamento confirmado com sucesso!",
+                    "pago"
+                );
+            } else {
+                TNP_LINK_func_mostrarStatusPagamento(
+                    "Ainda não confirmado. Status: " + (dados.status || "aguardando_pagamento"),
+                    ""
+                );
+            }
+
+        } catch (erro) {
+            console.error("Erro verificar:", erro);
+
+            TNP_LINK_func_mostrarStatusPagamento(
+                "Erro ao verificar pagamento: " + (erro.message || erro),
+                "erro"
+            );
+        }
+    }
+
+    TNP_LINK_auth.onAuthStateChanged(function (user) {
+        if (user) {
+            document.getElementById("btnGerar").disabled = false;
+
+            TNP_LINK_func_mostrarStatusLogin(
+                "Logado como: " + (user.email || user.uid),
+                "pago"
+            );
+        }
+    });
 </script>
 
 </body>
 </html>
+
+
+
